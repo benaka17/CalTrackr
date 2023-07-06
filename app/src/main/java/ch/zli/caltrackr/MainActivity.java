@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
         progress();
 
-        checkReset();
+        Intent resetIntent = new Intent(this, ResetService.class);
+        startService(resetIntent);
 
     }
 
@@ -90,25 +91,8 @@ public class MainActivity extends AppCompatActivity {
         progress.setText(getUserCals + " / " + getUserGoal);
     }
 
-    public void checkReset(){
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String lastResetDate = preferences.getString("lastResetDate", "");
 
-        String today = getCurrentDate();
 
-        if (!lastResetDate.equals(today)){
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("lastResetDate", today);
-            editor.putInt("totalCals", 0);
-            editor.apply();
-            Toast.makeText(this, "Calories resetted", Toast.LENGTH_SHORT).show();
-        }
-    }
 
-    public String getCurrentDate(){
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        Date today = Calendar.getInstance().getTime();
-        return format.format(today);
-    }
 
 }
