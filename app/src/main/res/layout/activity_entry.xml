@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GoalActivity">
+    tools:context=".EntryActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Kalorien-Ziel"
+            android:text="Kalorien"
             android:textAlignment="center"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:ems="10"
-            android:hint="Ihr Ziel"
+            android:hint="Anzahl"
             android:inputType="number"
             android:minHeight="48dp" />
 
