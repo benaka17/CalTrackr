@@ -9,8 +9,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
         addListeners();
 
         progress();
+
+        checkReset();
 
     }
 
@@ -80,4 +89,26 @@ public class MainActivity extends AppCompatActivity {
 
         progress.setText(getUserCals + " / " + getUserGoal);
     }
+
+    public void checkReset(){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String lastResetDate = preferences.getString("lastResetDate", "");
+
+        String today = getCurrentDate();
+
+        if (!lastResetDate.equals(today)){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("lastResetDate", today);
+            editor.putInt("totalCals", 0);
+            editor.apply();
+            Toast.makeText(this, "Calories resetted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public String getCurrentDate(){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Date today = Calendar.getInstance().getTime();
+        return format.format(today);
+    }
+
 }
