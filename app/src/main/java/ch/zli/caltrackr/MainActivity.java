@@ -33,10 +33,9 @@ public class MainActivity extends AppCompatActivity {
 
         addListeners();
 
-        progress();
+        checkReset();
 
-        Intent resetIntent = new Intent(this, ResetService.class);
-        startService(resetIntent);
+        progress();
 
     }
 
@@ -91,8 +90,24 @@ public class MainActivity extends AppCompatActivity {
         progress.setText(getUserCals + " / " + getUserGoal);
     }
 
+    public void checkReset() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String lastSavedDate = preferences.getString("lastSavedDate", "");
 
+        String today = getCurrentDate();
+        if (!lastSavedDate.equals(today)) {
+            // Reset calorie count to zero
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("lastSavedDate", today);
+            editor.putInt("totalCals", 0);
+            editor.apply();
+        }
+    }
 
-
+    public String getCurrentDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Date today = Calendar.getInstance().getTime();
+        return sdf.format(today);
+    }
 
 }
