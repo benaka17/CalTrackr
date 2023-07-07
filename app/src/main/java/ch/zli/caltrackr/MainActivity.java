@@ -5,6 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
@@ -19,10 +23,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     public TextView progress, steps, usedCals;
     public Button entry, goal;
+
+    public SensorManager sensorManager;
+    boolean running = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         findIDs();
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         addListeners();
 
@@ -46,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         entry = findViewById(R.id.entry);
         goal = findViewById(R.id.goal);
+
     }
 
     public void addListeners(){
@@ -110,4 +120,35 @@ public class MainActivity extends AppCompatActivity {
         return sdf.format(today);
     }
 
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if (running){
+            steps.setText(String.valueOf(sensorEvent.values[0]));
+            usedCals.setText(String.valueOf(sensorEvent.values[0]*0.4));
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        running = true;
+        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        if (countSensor != null){
+            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
+        } else {
+            Toast.makeText(this, "Sensor not found.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        running = false;
+        sensorManager.unregisterListener(this);
+    }
 }
