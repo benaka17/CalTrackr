@@ -1,10 +1,17 @@
 package ch.zli.caltrackr;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -40,6 +47,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("My Notification", "My Notification", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
+        }
+
         addListeners();
 
         checkReset();
@@ -48,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    public void findIDs(){
+    public void findIDs() {
         progress = findViewById(R.id.progress);
         steps = findViewById(R.id.steps);
         usedCals = findViewById(R.id.usedCals);
@@ -58,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    public void addListeners(){
+    public void addListeners() {
         goal.setOnClickListener(view -> {
             Intent switchActivityIntent = new Intent(MainActivity.this, GoalActivity.class);
             startActivity(switchActivityIntent);
@@ -70,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    public void progress(){
+    public void progress() {
         Intent intent = getIntent();
         int getUserGoal = intent.getIntExtra("userGoalInput", 0);
         int getUserCals = intent.getIntExtra("userCalsInput", 0);
@@ -85,21 +98,47 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             getUserGoal = savedUserGoalInput;
         }
 
-        //Code from: https://stackoverflow.com/questions/13950338/how-to-make-an-android-device-vibrate-with-different-frequency
-        if (getUserCals == getUserGoal){
-            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            // Vibrate for 500 milliseconds
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-            } else {
-                //deprecated in API 26
-                v.vibrate(500);
-            }
-        }
+        goalAchieved(getUserCals, getUserGoal);
 
         progress.setText(getUserCals + " / " + getUserGoal);
     }
 
+    public void goalAchieved(int cals, int goal) {
+        if (cals >= goal) {
+            //Code from: https://stackoverflow.com/questions/13950338/how-to-make-an-android-device-vibrate-with-different-frequency
+            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            // Vibrate for 500 milliseconds
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                Toast.makeText(this, "I'm vibing.", Toast.LENGTH_SHORT).show();
+            } else {
+                //deprecated in API 26
+                v.vibrate(500);
+            }
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, "My Notification");
+            builder.setContentTitle("Goal achieved!");
+            builder.setContentText("CalTrackr here. You just achieved your calorie goal!");
+            builder.setSmallIcon(R.drawable.ic_launcher_background);
+            builder.setAutoCancel(true);
+
+            NotificationManagerCompat managerCompat = NotificationManagerCompat.from(MainActivity.this);
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            managerCompat.notify(1, builder.build());
+
+        }
+    }
+
+    //Code from ChatGPT for this method
     public void checkReset() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String lastSavedDate = preferences.getString("lastSavedDate", "");
